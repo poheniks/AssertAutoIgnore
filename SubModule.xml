@@ -1,0 +1,13 @@
+<Module>
+	<Name value="Assert Auto Ignore"/>
+	<Id value="AssertAutoIgnore"/>
+	<Version value="v0.0.1.0"/>
+	<ModuleCategory value="Singleplayer"/>
+	<SubModules>
+		<SubModule>
+			<Name value="AssertAutoIgnore"/>
+			<DLLName value="AssertAutoIgnore.dll"/>
+			<SubModuleClassType value="AssertAutoIgnore.AssertAutoIgnoreSubModuleBase"/>
+		</SubModule>
+	</SubModules>
+</Module>
