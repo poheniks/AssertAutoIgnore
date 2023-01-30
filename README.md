@@ -5,3 +5,5 @@ A brute-force module that's no better than an auto clicker for ignoring those RG
 Install like any other module and set this moduile to load before any others
 
 Does not require any other mods
+
+Only works for the modding tools
