@@ -48,19 +48,17 @@ namespace AssertAutoIgnore
             {
                 switch (process.MainWindowTitle)
                 {
+                    case "Always Ignore?":
                     case "RGL CONTENT WARNING":
                     case "RGL CONTENT ERROR":
-                        FindAndInvokeButtonFromProcess(process, "OK");
+                        FindAndInvokeButtonFromProcess(process, 0);
                         break;
                     case "Safe Mode":
                     case "*_*":
-                        FindAndInvokeButtonFromProcess(process, "No");
-                        break;
-                    case "Always Ignore?":
-                        FindAndInvokeButtonFromProcess(process, "OK");
+                        FindAndInvokeButtonFromProcess(process, 1);
                         break;
                     case "ASSERT":
-                        FindAndInvokeButtonFromProcess(process, "Ignore");
+                        FindAndInvokeButtonFromProcess(process, 2);
                         break;
                     default:
                         break;
@@ -83,16 +81,17 @@ namespace AssertAutoIgnore
             return null;
         }
 
-        private void FindAndInvokeButtonFromProcess(Process process, string buttonName)
+        private void FindAndInvokeButtonFromProcess(Process process, int buttonIndex)
         {
             Console.WriteLine($"Closing: {process.MainWindowTitle}");
 
             AutomationElement bannerlordRoot = AutomationElement.FromHandle(process.MainWindowHandle);
 
-            PropertyCondition findAssert = new PropertyCondition(AutomationElement.NameProperty, buttonName);
-            AutomationElement buttonElement = bannerlordRoot.FindFirst(TreeScope.Descendants, findAssert);
+            PropertyCondition buttonProperty = new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Button);
+            AutomationElementCollection allButtons = bannerlordRoot.FindAll(TreeScope.Children, buttonProperty);
+            AutomationElement button = allButtons[buttonIndex];
 
-            InvokePattern pattern = buttonElement.GetCurrentPattern(InvokePattern.Pattern) as InvokePattern;
+            InvokePattern pattern = button.GetCurrentPattern(InvokePattern.Pattern) as InvokePattern;
             pattern.Invoke();
         }
     }
