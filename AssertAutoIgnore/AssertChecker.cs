@@ -21,19 +21,19 @@ namespace AssertAutoIgnore
                 {
                     Process.GetProcessById(BannerlordProcessID.Value).Refresh();
                     bannerlordProcess = Process.GetProcessById(BannerlordProcessID.Value);
+
+                    if (bannerlordProcess == null || (!bannerlordProcess.ProcessName.Contains("Bannerlord") & !bannerlordProcess.ProcessName.Contains("MountAndBlade")))
+                    {
+                        Console.WriteLine("Bannerlord process lost!");
+                        BannerlordProcessID = GetBannerlordProcess();
+                        return;
+                    }
+
                 }
                 catch
                 {
                     Console.WriteLine("Bannerlord process lost!");
                     BannerlordProcessID = null;
-                    return;
-                }
-
-
-                if (bannerlordProcess == null || (!bannerlordProcess.ProcessName.Contains("Bannerlord") & !bannerlordProcess.ProcessName.Contains("MountAndBlade")))
-                {
-                    Console.WriteLine("Bannerlord process lost!");
-                    BannerlordProcessID = GetBannerlordProcess();
                     return;
                 }
 
@@ -51,6 +51,7 @@ namespace AssertAutoIgnore
                     case "Always Ignore?":
                     case "RGL CONTENT WARNING":
                     case "RGL CONTENT ERROR":
+                    case "RGL WARNING":
                         FindAndInvokeButtonFromProcess(process, 0);
                         break;
                     case "Safe Mode":
@@ -58,6 +59,7 @@ namespace AssertAutoIgnore
                         FindAndInvokeButtonFromProcess(process, 1);
                         break;
                     case "ASSERT":
+                    case "SAFE ASSERT":
                         FindAndInvokeButtonFromProcess(process, 2);
                         break;
                     default:
