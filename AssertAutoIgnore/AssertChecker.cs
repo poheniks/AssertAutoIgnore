@@ -12,6 +12,8 @@ namespace AssertAutoIgnore
     {
         public int? BannerlordProcessID;
 
+        public int KillCount { get; set; }
+
         public virtual void OnTick()
         {
             if (BannerlordProcessID.HasValue)
@@ -95,6 +97,9 @@ namespace AssertAutoIgnore
 
             InvokePattern pattern = button.GetCurrentPattern(InvokePattern.Pattern) as InvokePattern;
             pattern.Invoke();
+
+            KillCount++;
+            Console.WriteLine($"Asserts killed: {KillCount}");
         }
     }
 }
