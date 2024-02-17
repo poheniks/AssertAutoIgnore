@@ -5,14 +5,34 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Automation;
+using System.Runtime.InteropServices;
 
 namespace AssertAutoIgnore
 {
     public class AssertChecker
     {
         public int? BannerlordProcessID;
-
         public int KillCount { get; set; }
+
+
+        [DllImport("user32.dll", EntryPoint = "FindWindow", SetLastError = true)]
+        static extern IntPtr FindWindow(IntPtr ZeroOnly, string lpWindowName);
+
+        public static Dictionary<string, int> WindowAutomationDictionary = new Dictionary<string, int>()
+        {
+            {"Always Ignore?", 0},
+            {"RGL CONTENT WARNING", 0},
+            {"RGL CONTENT ERROR", 0},
+            {"RGL WARNING", 0},
+
+            {"Safe Mode", 1},
+            {"*_*", 1},
+
+            {"ASSERT", 2},
+            {"SAFE ASSERT", 2},
+        };
+
+
 
         public virtual void OnTick()
         {
@@ -27,7 +47,7 @@ namespace AssertAutoIgnore
                     if (bannerlordProcess == null || (!bannerlordProcess.ProcessName.Contains("Bannerlord") & !bannerlordProcess.ProcessName.Contains("MountAndBlade")))
                     {
                         Console.WriteLine("Bannerlord process lost!");
-                        BannerlordProcessID = GetBannerlordProcess();
+                        GetProcesses();
                         return;
                     }
 
@@ -38,58 +58,45 @@ namespace AssertAutoIgnore
                     BannerlordProcessID = null;
                     return;
                 }
+                CheckForDialogBoxes();
 
-                CheckForDialogBoxes(bannerlordProcess);
             }
-            else BannerlordProcessID = GetBannerlordProcess();
+            else GetProcesses();
         }
 
-        private void CheckForDialogBoxes(Process process)
+        private void CheckForDialogBoxes()
         {
-            if (!process.MainWindowTitle.Contains("Bannerlord"))
+            foreach(KeyValuePair<string, int> windowAutomation in WindowAutomationDictionary)
             {
-                switch (process.MainWindowTitle)
+                IntPtr windowPointer = FindWindow(IntPtr.Zero, windowAutomation.Key);
+                if (windowPointer != IntPtr.Zero)
                 {
-                    case "Always Ignore?":
-                    case "RGL CONTENT WARNING":
-                    case "RGL CONTENT ERROR":
-                    case "RGL WARNING":
-                        FindAndInvokeButtonFromProcess(process, 0);
-                        break;
-                    case "Safe Mode":
-                    case "*_*":
-                        FindAndInvokeButtonFromProcess(process, 1);
-                        break;
-                    case "ASSERT":
-                    case "SAFE ASSERT":
-                        FindAndInvokeButtonFromProcess(process, 2);
-                        break;
-                    default:
-                        break;
+                    try 
+                    {
+                        FindAndInvokeButtonFromProcess(windowPointer, windowAutomation.Value, windowAutomation.Key);
+                    }
+                    catch { }
                 }
             }
         }
 
-        private int? GetBannerlordProcess()
+        private void GetProcesses()
         {
             Process[] processes = Process.GetProcesses();
             Process bannerlordProcess = processes.Where(process => process.ProcessName.Contains("Bannerlord") || process.ProcessName.Contains("MountAndBlade")).FirstOrDefault();
+
             if (bannerlordProcess != null)
             {
                 Console.WriteLine("Found Bannerlord process!");
-                int bannerlordProcessID = bannerlordProcess.Id;
-
-                return bannerlordProcessID;
+                BannerlordProcessID = bannerlordProcess.Id;
             }
-
-            return null;
         }
 
-        private void FindAndInvokeButtonFromProcess(Process process, int buttonIndex)
+        private void FindAndInvokeButtonFromProcess(IntPtr pointerHandle, int buttonIndex, string windowName)
         {
-            Console.WriteLine($"Closing: {process.MainWindowTitle}");
+            Console.WriteLine($"Closing: {windowName}");
 
-            AutomationElement bannerlordRoot = AutomationElement.FromHandle(process.MainWindowHandle);
+            AutomationElement bannerlordRoot = AutomationElement.FromHandle(pointerHandle);
 
             PropertyCondition buttonProperty = new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Button);
             AutomationElementCollection allButtons = bannerlordRoot.FindAll(TreeScope.Children, buttonProperty);
@@ -101,5 +108,8 @@ namespace AssertAutoIgnore
             KillCount++;
             Console.WriteLine($"Asserts killed: {KillCount}");
         }
+
     }
+
+
 }
